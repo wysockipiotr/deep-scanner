@@ -1,4 +1,6 @@
-# deep-scanner
+# DeepScanner
+
+#### Repo structure
 
 ```
 +-- 
@@ -8,6 +10,12 @@
       +-- models
       +-- notebooks
       +-- scripts
+         +-- scanner    (document scanner, Python script)
    +-- README.md
     ...
+```
+
+#### Scanner (Python script)
+``` 
+python scripts/scanner --image <path_to_image> --output <saved_scan_path>
 ```
