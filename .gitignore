@@ -210,3 +210,4 @@ dmypy.json
 **/*.jpg
 
 # End of https://www.gitignore.io/api/python,pycharm,visualstudiocode
+venv/
