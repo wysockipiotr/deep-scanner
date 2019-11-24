@@ -1,9 +1,17 @@
 <h1 align="center">DeepScanner</h1>
 <h5 align="center">Document scanner with autoencoder-driven defect removal (work in progress)</h5>
 
-<p align="center">
-<img src="https://github.com/wysockipiotr/deep-scanner/blob/assets/img/demo.gif" width=400 />
-</p>
+<div style="text-align: center"><table><tr>
+  <td style="text-align: center">
+    <img src="https://github.com/wysockipiotr/deep-scanner/blob/assets/img/demo.gif" width="470" />
+  </td>
+  <td style="text-align: center">
+    <img src="https://github.com/wysockipiotr/deep-scanner/blob/assets/img/mobile2.jpg" width="200"/>
+  </td>
+  <td style="text-align: center">
+    <img src="https://github.com/wysockipiotr/deep-scanner/blob/assets/img/mobile1.jpg" width="200" />
+  </td>
+</tr></table></div>
 
 #### Repo structure
 
