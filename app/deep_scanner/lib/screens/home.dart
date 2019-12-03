@@ -1,6 +1,7 @@
 import 'package:deep_scanner/config.dart' as config;
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:image_picker/image_picker.dart';
 
 class HomeScreen extends StatelessWidget {
   @override
@@ -10,12 +11,61 @@ class HomeScreen extends StatelessWidget {
         title: Text(config.appTitle),
         centerTitle: true,
       ),
-      body: Center(child: Text("HomeScreen"),),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        child: Icon(Icons.add_a_photo),
-        tooltip: "Pick image",
+      body: Center(
+        child: Text("HomeScreen"),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+//          Scaffold.of(context).showBottomSheet((context) => FlatButton(onPressed: null, child: Text("XD")));
+          showModalBottomSheet(
+              context: context,
+              builder: (context) => Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        ListTile(
+                          title: Text("Take a photo"),
+                          leading: Icon(Icons.photo_camera),
+                          onTap: () async => _pickImage(ImageSource.camera)
+                        ),
+                        ListTile(
+                          title: Text("Pick from the gallery"),
+                          leading: Icon(Icons.image),
+                          onTap: () async => _pickImage(ImageSource.gallery)
+                        )
+                      ],
+                    ),
+                  ));
+        },
+        child: Icon(Icons.add_a_photo),
+        tooltip: "Pick an image",
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: _buildBottomAppBar(context),
     );
+  }
+
+  BottomAppBar _buildBottomAppBar(BuildContext context) {
+    return BottomAppBar(
+      shape: CircularNotchedRectangle(),
+      child: Row(
+        children: <Widget>[
+          Padding(
+              padding: EdgeInsets.only(left: 4.0),
+              child: IconButton(
+                icon: Icon(Icons.more_vert),
+                onPressed: () {},
+              ))
+        ],
+        mainAxisAlignment: MainAxisAlignment.end,
+      ),
+      color: Theme.of(context).primaryColor,
+    );
+  }
+
+  void _pickImage(ImageSource source) async {
+    final file = await ImagePicker.pickImage(source: source);
+    print(file.path);
   }
 }

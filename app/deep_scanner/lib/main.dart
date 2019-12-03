@@ -14,6 +14,7 @@ class DeepScannerApp extends StatelessWidget {
         accentColor: config.accentColor,
         brightness: Brightness.dark,
       ),
+      debugShowCheckedModeBanner: false,
       home: HomeScreen(),
     );
   }
