@@ -1,4 +1,5 @@
 import 'package:deep_scanner/config.dart' as config;
+import 'package:deep_scanner/screens/about.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:image_picker/image_picker.dart';
@@ -25,15 +26,13 @@ class HomeScreen extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
                         ListTile(
-                          title: Text("Take a photo"),
-                          leading: Icon(Icons.photo_camera),
-                          onTap: () async => _pickImage(ImageSource.camera)
-                        ),
+                            title: Text("Take a photo"),
+                            leading: Icon(Icons.photo_camera),
+                            onTap: () async => _pickImage(ImageSource.camera)),
                         ListTile(
-                          title: Text("Pick from the gallery"),
-                          leading: Icon(Icons.image),
-                          onTap: () async => _pickImage(ImageSource.gallery)
-                        )
+                            title: Text("Pick from the gallery"),
+                            leading: Icon(Icons.image),
+                            onTap: () async => _pickImage(ImageSource.gallery))
                       ],
                     ),
                   ));
@@ -53,9 +52,18 @@ class HomeScreen extends StatelessWidget {
         children: <Widget>[
           Padding(
               padding: EdgeInsets.only(left: 4.0),
-              child: IconButton(
+              child: PopupMenuButton(
+                onSelected: (selection) => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => AboutScreen())),
                 icon: Icon(Icons.more_vert),
-                onPressed: () {},
+                itemBuilder: (context) {
+                  return [
+                    PopupMenuItem(
+                      value: "about",
+                      child: Text("About"),
+                    )
+                  ];
+                },
               ))
         ],
         mainAxisAlignment: MainAxisAlignment.end,
