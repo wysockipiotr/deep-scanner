@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:deep_scanner/config.dart' as config;
 import 'package:deep_scanner/screens/about.dart';
+import 'package:deep_scanner/screens/crop.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:image_picker/image_picker.dart';
@@ -128,10 +129,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _pickImage(ImageSource source) async {
     Navigator.pop(context);
-    final file = await ImagePicker.pickImage(source: source);
-    final String baseName = p.basename(file.path);
-    final String path = (await getApplicationDocumentsDirectory()).path;
-    await file.copy(p.join(path, baseName));
+
+    Navigator.of(context).push(MaterialPageRoute(
+        builder: (ctx) => CropScreen(
+              imageSource: source,
+            )));
+
     setState(() {});
   }
 }
