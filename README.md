@@ -1,15 +1,16 @@
+<p align="center">
+<img src="https://github.com/wysockipiotr/deep-scanner/blob/assets/img/icon.png" width="128" />
+</p>
+
 <h1 align="center">DeepScanner</h1>
 <h5 align="center">Document scanner with autoencoder-driven defect removal (work in progress)</h5>
 
 <div style="text-align: center"><table><tr>
   <td style="text-align: center">
-    <img src="https://github.com/wysockipiotr/deep-scanner/blob/assets/img/demo.gif" width="470" />
+    <img src="https://github.com/wysockipiotr/deep-scanner/blob/assets/img/demo.gif" width="600" />
   </td>
   <td style="text-align: center">
-    <img src="https://github.com/wysockipiotr/deep-scanner/blob/assets/img/mobile2.jpg" width="200"/>
-  </td>
-  <td style="text-align: center">
-    <img src="https://github.com/wysockipiotr/deep-scanner/blob/assets/img/mobile1.jpg" width="200" />
+    <img src="https://github.com/wysockipiotr/deep-scanner/blob/assets/img/mobile_gif_1.gif" width="256" />
   </td>
 </tr></table></div>
 
