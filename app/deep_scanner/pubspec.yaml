@@ -1,4 +1,4 @@
-name: DeepScanner
+name: deep_scanner
 description: Document scanner based on autoencoders
 
 # The following defines the version and build number for your application.

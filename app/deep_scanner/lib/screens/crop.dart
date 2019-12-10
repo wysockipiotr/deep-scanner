@@ -42,10 +42,12 @@ class _CropScreenState extends State<CropScreen> {
             if (asyncSnapshot.connectionState == ConnectionState.waiting) {
               return Center(child: CircularProgressIndicator());
             }
+            RenderBox renderBox = context.findRenderObject();
+
             return Container(
                 width: double.infinity,
                 height: double.infinity,
-                child: Crop(image: asyncSnapshot.data));
+                child: Crop(image: asyncSnapshot.data, size: renderBox.size,));
           },
         ));
   }
