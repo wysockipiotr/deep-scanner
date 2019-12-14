@@ -53,7 +53,7 @@ class _CropScreenState extends State<CropScreen> {
                   image: asyncSnapshot.data,
                   size: renderBox.size,
                   onCropPolygonUpdate: (CropPolygon polygon) {
-                    print("${polygon.topLeft} ${polygon.bottomRight} IMG: ${asyncSnapshot.data.width} ${asyncSnapshot.data.height}");
+                    debugPrint("${polygon.topLeft} ${polygon.bottomRight} IMG: ${asyncSnapshot.data.width} ${asyncSnapshot.data.height}");
                   },
                 ));
           },

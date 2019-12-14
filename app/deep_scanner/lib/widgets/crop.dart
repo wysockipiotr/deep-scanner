@@ -51,7 +51,6 @@ class _CropState extends State<Crop> {
   @override
   void initState() {
     final padding = 32.0;
-
     final scaledHeight =
         (widget.size.width / widget.image.width) * widget.image.height;
     _polygon = CropPolygon(
@@ -87,18 +86,23 @@ class _CropState extends State<Crop> {
   }
 
   void _onPanUpdate(DragUpdateDetails details) {
-    if (_editedPointIndex != null &&
-        details.localPosition.dy >= widget.minY &&
-        details.localPosition.dy <= widget.maxY) {
+    if (_editedPointIndex != null) {
+      Offset offset = details.localPosition;
+      if (details.localPosition.dy < widget.minY) {
+        offset = Offset(offset.dx, widget.minY);
+      } else if (details.localPosition.dy > widget.maxY) {
+        offset = Offset(offset.dx, widget.maxY);
+      }
+
       setState(() {
         if (_editedPointIndex == 0) {
-          _polygon = _polygon.update(topLeft: details.localPosition);
+          _polygon = _polygon.update(topLeft: offset);
         } else if (_editedPointIndex == 1) {
-          _polygon = _polygon.update(topRight: details.localPosition);
+          _polygon = _polygon.update(topRight: offset);
         } else if (_editedPointIndex == 2) {
-          _polygon = _polygon.update(bottomRight: details.localPosition);
+          _polygon = _polygon.update(bottomRight: offset);
         } else {
-          _polygon = _polygon.update(bottomLeft: details.localPosition);
+          _polygon = _polygon.update(bottomLeft: offset);
         }
       });
       widget.onCropPolygonUpdate(toImageCoords(
