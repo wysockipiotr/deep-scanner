@@ -5,11 +5,32 @@ import 'package:deep_scanner/core/crop_polygon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
+typedef OnCropPolygonUpdate = void Function(CropPolygon cropPolygon);
+
+CropPolygon toImageCoords(
+    {double imageSpaceScaler, CropPolygon polygonWidgetCoords, double minY}) {
+  final List<Offset> points = polygonWidgetCoords.points.map((Offset point) {
+    double dy = (point.dy - minY) * imageSpaceScaler;
+    double dx = point.dx * imageSpaceScaler;
+    return Offset(dx, dy);
+  }).toList();
+
+  return CropPolygon(
+      topLeft: points[0],
+      topRight: points[1],
+      bottomRight: points[2],
+      bottomLeft: points[3]);
+}
+
 class Crop extends StatefulWidget {
   final ui.Image image;
   final Size size;
+  final OnCropPolygonUpdate onCropPolygonUpdate;
 
-  Crop({@required this.image, @required this.size});
+  Crop(
+      {@required this.image,
+      @required this.size,
+      @required this.onCropPolygonUpdate});
 
   double get scaledImageHeight => (size.width / image.width) * image.height;
 
@@ -80,6 +101,10 @@ class _CropState extends State<Crop> {
           _polygon = _polygon.update(bottomLeft: details.localPosition);
         }
       });
+      widget.onCropPolygonUpdate(toImageCoords(
+          imageSpaceScaler: widget.image.height / widget.scaledImageHeight,
+          polygonWidgetCoords: _polygon,
+          minY: widget.minY));
     }
   }
 
