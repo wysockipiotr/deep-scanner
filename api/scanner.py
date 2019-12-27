@@ -73,5 +73,5 @@ def send_and_remove_image(image_path: str):
 def process_image(scan_request: ScanRequest) -> np.ndarray:
     image = cv2.cvtColor(scan_request.image, cv2.COLOR_BGR2GRAY)
     image = transform.four_point_warp(image, scan_request.points)
-    _, image = cv2.threshold(image, 127, 255, cv2.THRESH_BINARY)
+
     return image
