@@ -10,6 +10,7 @@ import numpy as np
 from werkzeug.datastructures import FileStorage, ImmutableMultiDict
 
 import config
+import model
 import status
 from app import app
 import transform
@@ -71,7 +72,14 @@ def send_and_remove_image(image_path: str):
 
 
 def process_image(scan_request: ScanRequest) -> np.ndarray:
+    # use grayscale image
     image = cv2.cvtColor(scan_request.image, cv2.COLOR_BGR2GRAY)
+
+    # crop & warp perspective
     image = transform.four_point_warp(image, scan_request.points)
+
+    # use denoising autoencoder
+    model_input = cv2.resize(image, (540, 420)).reshape(1, 420, 540, 1) / 255.0
+    image = model.get().predict(model_input).reshape((420, 540)) * 255
 
     return image
