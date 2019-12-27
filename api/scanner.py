@@ -2,7 +2,7 @@ import io
 import os
 import uuid
 from dataclasses import dataclass
-from typing import cast, Iterator
+from typing import cast, Iterator, Tuple
 
 import cv2
 import flask
@@ -12,8 +12,8 @@ from werkzeug.datastructures import FileStorage, ImmutableMultiDict
 import config
 import model
 import status
-from app import app
 import transform
+from app import app
 
 
 @dataclass
@@ -30,21 +30,15 @@ def remove_file(image_path: str):
         app.logger().error("Could not delete temporary image file", e)
 
 
-def serialize(request: flask.Request) -> ScanRequest:
-    data: ImmutableMultiDict = request.form
-    files: ImmutableMultiDict = request.files
+def validate_payload(data: ImmutableMultiDict, files: ImmutableMultiDict):
+    if not set(config.POINT_COORDS_NAMES) <= set(data.keys()):
+        flask.abort(status.BAD_REQUEST_400, "No crop polygon coords")
 
     if not files.getlist("files[]"):
         flask.abort(status.BAD_REQUEST_400, "No image")
 
-    if not set(config.POINT_COORDS_NAMES) <= set(data.keys()):
-        flask.abort(status.BAD_REQUEST_400, "No crop polygon coords")
 
-    points = [
-        data[name]
-        for name in config.POINT_COORDS_NAMES
-    ]
-
+def obtain_image(files: ImmutableMultiDict) -> Tuple[str, np.ndarray]:
     image_path = f"{config.TMP_IMG_DIR_PATH}/{uuid.uuid4()}.jpg"
     files_iterator = cast(Iterator, files.values())
     cast(FileStorage, next(files_iterator)).save(image_path)
@@ -54,11 +48,20 @@ def serialize(request: flask.Request) -> ScanRequest:
         flask.abort(status.UNSUPPORTED_MEDIA_TYPE_415, "File is not an image")
         remove_file(image_path)
 
-    return ScanRequest(
-        points=np.array(points, dtype=np.float32).reshape(config.ARRAY_OF_CROP_POLYGON_POINTS_SHAPE),
-        image_path=image_path,
-        image=image,
-    )
+    return image_path, image
+
+
+def serialize(request: flask.Request) -> ScanRequest:
+    data: ImmutableMultiDict = request.form
+    files: ImmutableMultiDict = request.files
+
+    validate_payload(data, files)
+    image_path, image = obtain_image(files)
+
+    points = [data[name] for name in config.POINT_COORDS_NAMES]
+    points = np.array(points, dtype=np.float32).reshape(config.ARRAY_OF_CROP_POLYGON_POINTS_SHAPE)
+
+    return ScanRequest(image_path, image, points)
 
 
 def send_and_remove_image(image_path: str):
