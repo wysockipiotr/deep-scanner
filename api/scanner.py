@@ -1,4 +1,5 @@
 import io
+import math
 import os
 import uuid
 from dataclasses import dataclass
@@ -15,6 +16,7 @@ import status
 import transform
 from app import app
 
+import itertools
 
 @dataclass
 class ScanRequest:
@@ -44,8 +46,9 @@ def process_image(scan_request: ScanRequest) -> np.ndarray:
     image = transform.four_point_warp(image, scan_request.points)
 
     # use denoising autoencoder
-    model_input = cv2.resize(image, (540, 420)).reshape(1, 420, 540, 1) / 255.0
-    image = model.get().predict(model_input).reshape((420, 540)) * 255
+    image = _apply_model(image)
+    # model_input = cv2.resize(image, (540, 420)).reshape(1, 420, 540, 1) / 255.0
+    # image = model.get().predict(model_input).reshape((420, 540)) * 255
 
     return image
 
@@ -55,7 +58,7 @@ def send_and_remove_image(image_path: str) -> Any:
     with open(image_path, "rb") as image_file:
         image_bytes.write(image_file.read())
     image_bytes.seek(0)
-    _remove_file(image_path)
+    # _remove_file(image_path)
 
     return flask.send_file(image_bytes, mimetype=config.JPEG_MIMETYPE), status.OK_200
 
@@ -86,3 +89,36 @@ def _obtain_image(files: ImmutableMultiDict) -> Tuple[str, np.ndarray]:
         _remove_file(image_path)
 
     return image_path, image
+
+
+def _apply_model(image: np.ndarray) -> np.ndarray:
+    model_height, model_width = config.MODEL_INPUT_SHAPE
+    image_height, image_width = image.shape
+
+    # apply model to a single slice of the image
+    if image.shape == config.MODEL_INPUT_SHAPE:
+        model_input = image.reshape((1, model_height, model_width, 1)) / 255.0
+        return model.get().predict(model_input).reshape((model_height, model_width)) * 255
+
+    # recursively apply model to the whole image
+    elif image_height >= model_height and image_width >= model_width:
+        n_vertical = math.ceil(image_height / model_height)
+        n_horizontal = math.ceil(image_width / model_width)
+
+        # create overflow buffer
+        result = np.full((n_vertical * model_height, n_horizontal * model_width), fill_value=255)
+        result[:image_height, :image_width] = image
+
+        # iterate over all image slices
+        for row, col in itertools.product(range(n_vertical), range(n_horizontal)):
+            v_slice = slice(row * model_height, (row + 1) * model_height)
+            h_slice = slice(col * model_width, (col + 1) * model_width)
+
+            result[v_slice, h_slice] = _apply_model(result[v_slice, h_slice])
+
+        # crop to original image shape
+        result = result[:image_height, :image_width]
+
+        return result
+    else:
+        flask.abort(status.BAD_REQUEST_400, "Image too small")
