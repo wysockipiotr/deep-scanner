@@ -1,4 +1,5 @@
 import io
+import itertools
 import math
 import os
 import uuid
@@ -16,7 +17,6 @@ import status
 import transform
 from app import app
 
-import itertools
 
 @dataclass
 class ScanRequest:
@@ -47,8 +47,6 @@ def process_image(scan_request: ScanRequest) -> np.ndarray:
 
     # use denoising autoencoder
     image = _apply_model(image)
-    # model_input = cv2.resize(image, (540, 420)).reshape(1, 420, 540, 1) / 255.0
-    # image = model.get().predict(model_input).reshape((420, 540)) * 255
 
     return image
 
@@ -58,7 +56,7 @@ def send_and_remove_image(image_path: str) -> Any:
     with open(image_path, "rb") as image_file:
         image_bytes.write(image_file.read())
     image_bytes.seek(0)
-    # _remove_file(image_path)
+    _remove_file(image_path)
 
     return flask.send_file(image_bytes, mimetype=config.JPEG_MIMETYPE), status.OK_200
 
