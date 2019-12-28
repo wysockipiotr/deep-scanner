@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 
 import 'package:deep_scanner/core/crop_polygon.dart';
 import 'package:deep_scanner/core/scanner.dart';
+import 'package:deep_scanner/screens/result_display.dart';
 import 'package:deep_scanner/widgets/crop.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -24,6 +25,9 @@ class CropScreen extends StatefulWidget {
 }
 
 class _CropScreenState extends State<CropScreen> {
+  CropPolygon polygon;
+  File imgFile;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,7 +41,14 @@ class _CropScreenState extends State<CropScreen> {
           centerTitle: true,
           actions: <Widget>[
             IconButton(
-              onPressed: () {},
+              onPressed: () async {
+                final bytes = await Scanner.warpCrop(
+                    imageFile: this.imgFile, cropPolygon: this.polygon);
+                Navigator.of(context)
+                    .push(MaterialPageRoute(builder: (context) {
+                  return ResultDisplayScreen(bytes: bytes);
+                }));
+              },
               icon: Icon(Icons.done),
               tooltip: "Crop image",
             )
@@ -59,6 +70,7 @@ class _CropScreenState extends State<CropScreen> {
                   image: asyncSnapshot.data,
                   size: renderBox.size,
                   onCropPolygonUpdate: (CropPolygon polygon) {
+                    this.polygon = polygon;
                     debugPrint(
                         "${polygon.topLeft} ${polygon.bottomRight} IMG: ${asyncSnapshot.data.width} ${asyncSnapshot.data.height}");
                   },
@@ -74,6 +86,7 @@ class _CropScreenState extends State<CropScreen> {
     final String path = (await getApplicationDocumentsDirectory()).path;
     final File imageFile = await tmpImageFile.copy(p.join(path, baseName));
 
+    this.imgFile = imageFile;
 //    Uint8List bytes = await Scanner.warpCrop(imageFile: imageFile, cropPolygon: CropPolygon());
 
     final Completer<ui.Image> completer = Completer();
