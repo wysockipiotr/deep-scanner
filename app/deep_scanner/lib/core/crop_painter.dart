@@ -27,12 +27,16 @@ class CropPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) async {
-//    canvas.drawImage(image, Offset.zero, Paint());
+
+      final double widgetWidth = size.width;
+      final double scaleFactor = widgetWidth / image.width;
+      final double scaledHeight = image.height * scaleFactor;
+
         canvas.drawImageRect(
         image,
         Rect.fromPoints(
             Offset.zero, Offset(image.width * 1.0, image.height * 1.0)),
-        Rect.fromPoints(Offset(0, 200), Offset(size.width, size.height - 200)),
+        Rect.fromCenter(center: Offset(size.width / 2, size.height / 2), width: size.width, height: scaledHeight),
         Paint());
 
     canvas.drawPoints(ui.PointMode.polygon,

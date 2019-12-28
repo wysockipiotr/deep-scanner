@@ -109,6 +109,8 @@ class _HomeScreenState extends State<HomeScreen> {
             .map((String path) => Image.file(
                   File(path),
                   fit: BoxFit.cover,
+                  scale: 32,
+                  filterQuality: FilterQuality.low,
                 ))
             .toList());
   }

@@ -2,12 +2,41 @@ import 'dart:ui' as ui;
 
 import 'package:deep_scanner/core/crop_painter.dart';
 import 'package:deep_scanner/core/crop_polygon.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+
+typedef OnCropPolygonUpdate = void Function(CropPolygon cropPolygon);
+
+CropPolygon toImageCoords(
+    {double imageSpaceScaler, CropPolygon polygonWidgetCoords, double minY}) {
+  final List<Offset> points = polygonWidgetCoords.points.map((Offset point) {
+    double dy = (point.dy - minY) * imageSpaceScaler;
+    double dx = point.dx * imageSpaceScaler;
+    return Offset(dx, dy);
+  }).toList();
+
+  return CropPolygon(
+      topLeft: points[0],
+      topRight: points[1],
+      bottomRight: points[2],
+      bottomLeft: points[3]);
+}
 
 class Crop extends StatefulWidget {
   final ui.Image image;
+  final Size size;
+  final OnCropPolygonUpdate onCropPolygonUpdate;
 
-  Crop({@required this.image});
+  Crop(
+      {@required this.image,
+      @required this.size,
+      @required this.onCropPolygonUpdate});
+
+  double get scaledImageHeight => (size.width / image.width) * image.height;
+
+  double get minY => (size.height - scaledImageHeight) / 2;
+
+  double get maxY => size.height - (size.height - scaledImageHeight) / 2;
 
   @override
   State<StatefulWidget> createState() {
@@ -20,10 +49,34 @@ class _CropState extends State<Crop> {
   CropPolygon _polygon = CropPolygon();
 
   @override
+  void initState() {
+    final padding = 32.0;
+    final scaledHeight =
+        (widget.size.width / widget.image.width) * widget.image.height;
+    _polygon = CropPolygon(
+        topLeft:
+            Offset(padding, (widget.size.height - scaledHeight) / 2 + padding),
+        topRight: Offset(widget.size.width - padding,
+            (widget.size.height - scaledHeight) / 2 + padding),
+        bottomRight: Offset(
+            widget.size.width - padding,
+            widget.size.height -
+                (widget.size.height - scaledHeight) / 2 -
+                padding),
+        bottomLeft: Offset(
+            padding,
+            widget.size.height -
+                (widget.size.height - scaledHeight) / 2 -
+                padding));
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return GestureDetector(
       child: CustomPaint(
         painter: CropPainter(cropPolygon: _polygon, image: widget.image),
+        size: Size(double.infinity, double.infinity),
       ),
       onPanStart: _onPanStart,
       onPanUpdate: _onPanUpdate,
@@ -34,17 +87,28 @@ class _CropState extends State<Crop> {
 
   void _onPanUpdate(DragUpdateDetails details) {
     if (_editedPointIndex != null) {
+      Offset offset = details.localPosition;
+      if (details.localPosition.dy < widget.minY) {
+        offset = Offset(offset.dx, widget.minY);
+      } else if (details.localPosition.dy > widget.maxY) {
+        offset = Offset(offset.dx, widget.maxY);
+      }
+
       setState(() {
         if (_editedPointIndex == 0) {
-          _polygon = _polygon.update(topLeft: details.localPosition);
+          _polygon = _polygon.update(topLeft: offset);
         } else if (_editedPointIndex == 1) {
-          _polygon = _polygon.update(topRight: details.localPosition);
+          _polygon = _polygon.update(topRight: offset);
         } else if (_editedPointIndex == 2) {
-          _polygon = _polygon.update(bottomRight: details.localPosition);
+          _polygon = _polygon.update(bottomRight: offset);
         } else {
-          _polygon = _polygon.update(bottomLeft: details.localPosition);
+          _polygon = _polygon.update(bottomLeft: offset);
         }
       });
+      widget.onCropPolygonUpdate(toImageCoords(
+          imageSpaceScaler: widget.image.height / widget.scaledImageHeight,
+          polygonWidgetCoords: _polygon,
+          minY: widget.minY));
     }
   }
 
