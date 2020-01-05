@@ -26,17 +26,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
-    print("hejka");
     super.initState();
 
     final provider = SavedScanProvider();
     provider.open().then((_) => {
           provider.all().then((List<SavedScan> scans) {
               Provider.of<AllScans>(context).update(scans);
-
-//            setState(() {
-//              this.scans = scans;
-//            });
             provider.close().then((_) {});
           })
         });
