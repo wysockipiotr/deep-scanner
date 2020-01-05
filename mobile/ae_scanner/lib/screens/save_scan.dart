@@ -2,11 +2,12 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:ae_scanner/core/crop_polygon.dart';
+import 'package:ae_scanner/core/saved_scan_provider.dart';
 import 'package:ae_scanner/core/scan.dart';
+import 'package:ae_scanner/main.dart';
 import 'package:ae_scanner/screens/home.dart';
 import 'package:flutter/material.dart';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
 
 class SaveScanScreen extends StatefulWidget {
   final File imageFile;
@@ -19,7 +20,6 @@ class SaveScanScreen extends StatefulWidget {
 }
 
 class _SaveScanScreenState extends State<SaveScanScreen> {
-//  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   Uint8List bytes;
 
   @override
@@ -78,10 +78,11 @@ class _SaveScanScreenState extends State<SaveScanScreen> {
           IconButton(
             icon: Icon(Icons.save_alt),
             onPressed: () async {
-              await PermissionHandler()
-                  .requestPermissions([PermissionGroup.storage]);
-              final result = await ImageGallerySaver.saveImage(bytes);
-              print(result);
+              final provider = SavedScanProvider();
+              await provider.open();
+              final scan = await provider.insert(bytes);
+              await provider.close();
+              Provider.of<AllScans>(context).insert(scan);
               Navigator.of(context).pop();
             },
             tooltip: "Save scan",

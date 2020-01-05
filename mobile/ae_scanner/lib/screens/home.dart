@@ -1,16 +1,19 @@
-import 'package:ae_scanner/core/scan.dart';
+import 'package:ae_scanner/core/saved_scan_provider.dart';
+import 'package:ae_scanner/main.dart';
+import 'package:ae_scanner/model/saved_scan.dart';
 import 'package:ae_scanner/screens/about.dart';
 import 'package:ae_scanner/screens/crop.dart';
 import 'package:ae_scanner/widgets/gallery.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
 import '../config.dart' as config;
 
 class HomeScreen extends StatefulWidget {
-
-  static final GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey<ScaffoldState>();
+  static final GlobalKey<ScaffoldState> scaffoldKey =
+      new GlobalKey<ScaffoldState>();
 
   @override
   State<StatefulWidget> createState() {
@@ -19,6 +22,25 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+//  List<SavedScan> scans = [];
+
+  @override
+  void initState() {
+    print("hejka");
+    super.initState();
+
+    final provider = SavedScanProvider();
+    provider.open().then((_) => {
+          provider.all().then((List<SavedScan> scans) {
+              Provider.of<AllScans>(context).update(scans);
+
+//            setState(() {
+//              this.scans = scans;
+//            });
+            provider.close().then((_) {});
+          })
+        });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +76,10 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       );
 
-  Widget _buildBody() => Center(child: Gallery());
+  Widget _buildBody() {
+    final scans = Provider.of<AllScans>(context).savedScans;
+    return Center(child: Gallery(scans: scans));
+  }
 
   FloatingActionButton _buildFab() => FloatingActionButton(
       child: Icon(Icons.add),
