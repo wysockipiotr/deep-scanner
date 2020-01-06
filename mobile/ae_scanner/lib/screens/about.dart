@@ -1,6 +1,3 @@
-import 'dart:io';
-
-import 'package:ae_scanner/core/scan.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 

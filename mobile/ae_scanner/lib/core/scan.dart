@@ -24,7 +24,6 @@ Future<Uint8List> scan(
   final baseOptions =
       BaseOptions(connectTimeout: CONNECTION_TIMEOUT_MS, baseUrl: BASE_URL);
 
-
   FormData formData = FormData.fromMap({
     "topLeftX": cropPolygon.topLeft.dx,
     "topLeftY": cropPolygon.topLeft.dy,

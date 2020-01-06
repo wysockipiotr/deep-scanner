@@ -1,6 +1,5 @@
 import 'package:ae_scanner/core/saved_scan_provider.dart';
 import 'package:ae_scanner/main.dart';
-import 'package:ae_scanner/model/saved_scan.dart';
 import 'package:ae_scanner/screens/about.dart';
 import 'package:ae_scanner/screens/crop.dart';
 import 'package:ae_scanner/widgets/gallery.dart';

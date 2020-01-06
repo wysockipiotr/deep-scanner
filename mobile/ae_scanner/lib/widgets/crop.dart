@@ -19,8 +19,7 @@ CropPolygon toImageCoords(
       topLeft: points[0],
       topRight: points[1],
       bottomRight: points[2],
-      bottomLeft: points[3]
-  );
+      bottomLeft: points[3]);
 }
 
 class Crop extends StatefulWidget {
@@ -30,8 +29,8 @@ class Crop extends StatefulWidget {
 
   Crop(
       {@required this.image,
-        @required this.size,
-        @required this.onCropPolygonUpdate});
+      @required this.size,
+      @required this.onCropPolygonUpdate});
 
   double get scaledImageHeight => (size.width / image.width) * image.height;
 
@@ -47,16 +46,16 @@ class Crop extends StatefulWidget {
 
 class _CropState extends State<Crop> {
   int _editedPointIndex;
-  CropPolygon _polygon; //= CropPolygon.fromPoints(topLeft: Offset(0,0), topRight: Offset(100,0), bottomRight: Offset(100,100), bottomLeft: null);
+  CropPolygon _polygon;
 
   @override
   void initState() {
-    final padding = 16.0;
+    final padding = 32.0;
     final scaledHeight =
         (widget.size.width / widget.image.width) * widget.image.height;
     _polygon = CropPolygon.fromPoints(
         topLeft:
-        Offset(padding, (widget.size.height - scaledHeight) / 2 + padding),
+            Offset(padding, (widget.size.height - scaledHeight) / 2 + padding),
         topRight: Offset(widget.size.width - padding,
             (widget.size.height - scaledHeight) / 2 + padding),
         bottomRight: Offset(
@@ -69,6 +68,7 @@ class _CropState extends State<Crop> {
             widget.size.height -
                 (widget.size.height - scaledHeight) / 2 -
                 padding));
+    _invokeOnCropPolygonUpdateCallback();
     super.initState();
   }
 
@@ -106,11 +106,15 @@ class _CropState extends State<Crop> {
           _polygon = _polygon.update(bottomLeft: offset);
         }
       });
-      widget.onCropPolygonUpdate(toImageCoords(
-          imageSpaceScaler: widget.image.height / widget.scaledImageHeight,
-          polygonWidgetCoords: _polygon,
-          minY: widget.minY));
+      _invokeOnCropPolygonUpdateCallback();
     }
+  }
+
+  void _invokeOnCropPolygonUpdateCallback() {
+    widget.onCropPolygonUpdate(toImageCoords(
+        imageSpaceScaler: widget.image.height / widget.scaledImageHeight,
+        polygonWidgetCoords: _polygon,
+        minY: widget.minY));
   }
 
   void _onPanStart(DragStartDetails details) {

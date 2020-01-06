@@ -1,6 +1,7 @@
+import 'dart:ui' as ui;
+
 import 'package:ae_scanner/config.dart' as config;
 import 'package:flutter/widgets.dart';
-import 'dart:ui' as ui;
 
 import 'crop_polygon.dart';
 
