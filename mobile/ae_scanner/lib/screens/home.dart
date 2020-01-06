@@ -22,19 +22,17 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-//  List<SavedScan> scans = [];
-
   @override
   void initState() {
     super.initState();
+    _loadSavedScans();
+  }
 
-    final provider = SavedScanProvider();
-    provider.open().then((_) => {
-          provider.all().then((List<SavedScan> scans) {
-              Provider.of<AllScans>(context).update(scans);
-            provider.close().then((_) {});
-          })
-        });
+  void _loadSavedScans() async {
+    final savedScanProvider = SavedScanProvider();
+    await savedScanProvider.open();
+    Provider.of<AllScans>(context).update(await savedScanProvider.all());
+    await savedScanProvider.close();
   }
 
   @override
