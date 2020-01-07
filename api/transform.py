@@ -40,11 +40,14 @@ def four_point_warp(image: np.ndarray, contour_points: np.ndarray) -> np.ndarray
     max_width = int(max(top_width, bottom_width))
     left_height, right_height = distance(tl, bl), distance(tr, br)
     max_height = int(max(left_height, right_height))
-    new_contour_points = np.array([
-        [0, 0],
-        [max_width - 1, 0],
-        [max_width - 1, max_height - 1],
-        [0, max_height - 1]
-    ], dtype=np.float32)
+    new_contour_points = np.array(
+        [
+            [0, 0],
+            [max_width - 1, 0],
+            [max_width - 1, max_height - 1],
+            [0, max_height - 1],
+        ],
+        dtype=np.float32,
+    )
     warp_matrix = cv2.getPerspectiveTransform(contour_points, new_contour_points)
     return cv2.warpPerspective(image, warp_matrix, (max_width, max_height))
