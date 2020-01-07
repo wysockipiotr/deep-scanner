@@ -15,25 +15,24 @@ class Gallery extends StatelessWidget {
         crossAxisCount: 3,
         mainAxisSpacing: .5,
         crossAxisSpacing: .5,
-        children: this.scans.map(
-          (SavedScan scan) {
-            return Card(
-              elevation: 2.0,
-              child: Ink.image(
-                image: FileImage(scan.scanFile),
-                fit: BoxFit.cover,
-                child: InkWell(
-                  onTap: () {
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (ctx) => DetailsScreen(
-                              imageName: p.basename(scan.scanFile.path),
-                              imageProvider: FileImage(scan.scanFile),
-                            )));
-                  },
-                ),
-              ),
-            );
-          },
-        ).toList());
+        children:
+            scans.map((SavedScan scan) => _buildCard(context, scan)).toList());
   }
+
+  Card _buildCard(BuildContext context, SavedScan scan) => Card(
+        elevation: 2.0,
+        child: Ink.image(
+          image: FileImage(scan.scanFile),
+          fit: BoxFit.cover,
+          child: InkWell(
+            onTap: () {
+              Navigator.of(context).push(MaterialPageRoute(
+                  builder: (ctx) => DetailsScreen(
+                        imageName: p.basename(scan.scanFile.path),
+                        imageProvider: FileImage(scan.scanFile),
+                      )));
+            },
+          ),
+        ),
+      );
 }
