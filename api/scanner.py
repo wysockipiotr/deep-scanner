@@ -58,7 +58,7 @@ def send_and_remove_image(image_path: str) -> Any:
     with open(image_path, "rb") as image_file:
         image_bytes.write(image_file.read())
     image_bytes.seek(0)
-    # _remove_file(image_path)
+    _remove_file(image_path)
 
     return flask.send_file(image_bytes, mimetype=config.JPEG_MIMETYPE), status.OK_200
 
