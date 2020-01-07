@@ -18,8 +18,6 @@ def scan():
     return scanner.send_and_remove_image(scan_request.image_path)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     model.load()
-    app.run(host=config.DEFAULT_HOST,
-            port=config.DEFAULT_PORT,
-            debug=config.DEBUG)
+    app.run(host=config.DEFAULT_HOST, port=config.DEFAULT_PORT, debug=config.DEBUG)
