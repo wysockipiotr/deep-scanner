@@ -117,6 +117,18 @@ def _apply_model(image: np.ndarray) -> np.ndarray:
         # crop to original image shape
         result = result[:image_height, :image_width]
 
+        # partially dispose of the grid artifact
+        for row in range(1, n_vertical):
+            median = np.average(np.concatenate((result[row * model_height - 3:row * model_height - 1, :],
+                                                result[row * model_height + 1:row * model_height + 3, :]), axis=0),
+                                axis=0)
+            result[row * model_height - 1:row * model_height + 1] = median
+        for col in range(1, n_horizontal):
+            median = np.average(np.concatenate((result[:, col * model_width - 2:col * model_width - 1, ],
+                                                result[:, col * model_width + 1:col * model_width + 2]), axis=1),
+                                axis=1)
+            result.T[col * model_width - 1:col * model_width + 1] = median
+
         return result
     else:
         flask.abort(status.BAD_REQUEST_400, "Image too small")
