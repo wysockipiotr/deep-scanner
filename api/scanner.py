@@ -107,6 +107,8 @@ def _apply_model(image: np.ndarray) -> np.ndarray:
         result = np.full((n_vertical * model_height, n_horizontal * model_width), fill_value=255)
         result[:image_height, :image_width] = image
 
+        buffer = result.copy()
+
         # iterate over all image slices
         for row, col in itertools.product(range(n_vertical), range(n_horizontal)):
             v_slice = slice(row * model_height, (row + 1) * model_height)
@@ -114,20 +116,31 @@ def _apply_model(image: np.ndarray) -> np.ndarray:
 
             result[v_slice, h_slice] = _apply_model(result[v_slice, h_slice])
 
+        # dispose of the grid artifact
+        overlap_size = 8
+        for row in range(1, n_vertical):
+            for col in range(n_horizontal):
+                patch = _apply_model(
+                    (buffer[row * model_height - model_height // 2:row * model_height + model_height // 2,
+                     col * model_width:(col + 1) * model_width]))
+
+                result[row * model_height - overlap_size:row * model_height + overlap_size,
+                col * model_width:(col + 1) * model_width] = patch[
+                                                             model_height // 2 - overlap_size:model_height // 2 + overlap_size,
+                                                             :]
+
+        for col in range(1, n_horizontal):
+            for row in range(n_vertical):
+                patch = _apply_model(
+                    (buffer[row * model_height:(row + 1) * model_height,
+                     col * model_width - model_width // 2:col * model_width + model_width // 2]))
+
+                result[row * model_height:(row + 1) * model_height,
+                col * model_width - overlap_size:col * model_width + overlap_size
+                ] = patch[:, model_width // 2 - overlap_size:model_width // 2 + overlap_size]
+
         # crop to original image shape
         result = result[:image_height, :image_width]
-
-        # partially dispose of the grid artifact
-        for row in range(1, n_vertical):
-            median = np.average(np.concatenate((result[row * model_height - 3:row * model_height - 1, :],
-                                                result[row * model_height + 1:row * model_height + 3, :]), axis=0),
-                                axis=0)
-            result[row * model_height - 1:row * model_height + 1] = median
-        for col in range(1, n_horizontal):
-            median = np.average(np.concatenate((result[:, col * model_width - 2:col * model_width - 1, ],
-                                                result[:, col * model_width + 1:col * model_width + 2]), axis=1),
-                                axis=1)
-            result.T[col * model_width - 1:col * model_width + 1] = median
 
         return result
     else:
