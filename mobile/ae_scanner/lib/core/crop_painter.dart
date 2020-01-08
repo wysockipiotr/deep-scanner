@@ -13,7 +13,6 @@ class CropPainter extends CustomPainter {
   CropPainter({@required this.cropPolygon, @required this.image});
 
   final _vertexPaint = Paint()
-//    ..blendMode = BlendMode.multiply
     ..color = Colors.transparent
     ..isAntiAlias = true
     ..style = PaintingStyle.fill;
