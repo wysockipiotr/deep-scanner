@@ -39,7 +39,20 @@ class SavedScanProvider {
         {"id": id, "scan_path": scanPath, "thumbnail_path": scanPath});
   }
 
+  Future<SavedScan> get(int id) async {
+    List<Map> maps = await db.query(tableName,
+        columns: ["id", "scan_path", "thumbnail_path"],
+        where: 'id = ?',
+        whereArgs: [id]);
+    if (maps.length > 0) {
+      return SavedScan.fromMap(maps.first);
+    }
+    return null;
+  }
+
   Future<int> delete(int id) async {
+    SavedScan scan = await get(id);
+    await scan.scanFile.delete();
     return await db.delete(tableName, where: 'id = ?', whereArgs: [id]);
   }
 

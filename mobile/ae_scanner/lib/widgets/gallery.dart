@@ -1,13 +1,17 @@
+import 'package:ae_scanner/core/saved_scan_provider.dart';
 import 'package:ae_scanner/model/saved_scan.dart';
 import 'package:ae_scanner/screens/details.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:path/path.dart' as p;
 
+typedef OnDeleteScan = void Function(int id);
+
 class Gallery extends StatelessWidget {
   final List<SavedScan> scans;
+  final OnDeleteScan onDeleteScan;
 
-  Gallery({this.scans});
+  Gallery({this.scans, this.onDeleteScan});
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +31,13 @@ class Gallery extends StatelessWidget {
           footer: GridTileBar(
             backgroundColor: Colors.white.withOpacity(0.8),
             trailing: IconButton(
-              onPressed: () {},
+              onPressed: () async {
+                final provider = SavedScanProvider();
+                await provider.open();
+                await provider.delete(scan.id);
+                await provider.close();
+                onDeleteScan(scan.id);
+              },
               color: Colors.black.withOpacity(0.6),
               icon: Icon(Icons.delete_outline),
             ),

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'config.dart' as config;
+import 'core/saved_scan_provider.dart';
 
 void main() => runApp(MyApp());
 
@@ -12,6 +13,15 @@ class AllScans with ChangeNotifier {
   List<SavedScan> _savedScans = [];
 
   List<SavedScan> get savedScans => [..._savedScans];
+
+  Future updateFromDb() async {
+    final savedScanProvider = SavedScanProvider();
+    await savedScanProvider.open();
+    final all = await savedScanProvider.all();
+    await
+    savedScanProvider.close();
+    update(all);
+  }
 
   void update(List<SavedScan> scans) {
     this._savedScans = scans;

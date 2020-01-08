@@ -70,7 +70,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildBody() {
     final scans = Provider.of<AllScans>(context).savedScans;
-    return Center(child: Gallery(scans: scans));
+    return Center(
+        child: Gallery(
+      scans: scans,
+      onDeleteScan: (id) async {
+        await Provider.of<AllScans>(context).updateFromDb();
+      },
+    ));
   }
 
   FloatingActionButton _buildFab() => FloatingActionButton(
