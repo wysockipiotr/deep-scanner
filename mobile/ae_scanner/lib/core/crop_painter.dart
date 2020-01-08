@@ -13,13 +13,13 @@ class CropPainter extends CustomPainter {
   CropPainter({@required this.cropPolygon, @required this.image});
 
   final _vertexPaint = Paint()
-    ..color = Colors.transparent
+    ..color = config.primaryColor
     ..isAntiAlias = true
     ..style = PaintingStyle.fill;
 
   final _edgePaint = Paint()
     ..blendMode = BlendMode.difference
-    ..color = Colors.grey
+    ..color = config.primaryColor
     ..isAntiAlias = true
     ..style = PaintingStyle.stroke
     ..strokeCap = StrokeCap.round
@@ -28,8 +28,8 @@ class CropPainter extends CustomPainter {
     ..strokeWidth = 4;
 
   final _fillPaint = Paint()
-    ..blendMode = BlendMode.difference
-    ..color = Colors.grey.withOpacity(0.25)
+//    ..blendMode = BlendMode.difference
+    ..color = Colors.white.withOpacity(0.25)
     ..isAntiAlias = true
     ..style = PaintingStyle.fill;
 
@@ -49,15 +49,15 @@ class CropPainter extends CustomPainter {
             height: scaledHeight),
         Paint());
 
-
-
     final path = Path()..addPolygon(cropPolygon.list, true);
     canvas.drawPath(path, _fillPaint);
 
     canvas.drawPoints(ui.PointMode.polygon,
         [...cropPolygon.list, cropPolygon.list.first], _edgePaint);
-    cropPolygon.list
-        .forEach((offset) => canvas.drawCircle(offset, 8, _vertexPaint));
+    cropPolygon.list.forEach((offset) {
+      canvas.drawCircle(offset, 8, _vertexPaint);
+      canvas.drawArc(Rect.fromCircle(center: offset, radius: 8), 0.0, 3.1415*2, false, _edgePaint);
+    });
   }
 
   @override
