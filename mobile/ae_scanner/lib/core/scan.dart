@@ -7,7 +7,7 @@ import 'package:flutter/foundation.dart';
 
 enum ScanningPolicy { Local, Remote }
 
-const int CONNECTION_TIMEOUT_MS = 8000;
+const int CONNECTION_TIMEOUT_MS = 30000;
 const BASE_URL = "http://192.168.0.197:5000";
 const SCAN_ENDPOINT = "/scan";
 
@@ -23,7 +23,6 @@ Future<Uint8List> scan(
 
   final baseOptions =
       BaseOptions(connectTimeout: CONNECTION_TIMEOUT_MS, baseUrl: BASE_URL);
-
 
   FormData formData = FormData.fromMap({
     "topLeftX": cropPolygon.topLeft.dx,
@@ -41,7 +40,8 @@ Future<Uint8List> scan(
     Response<List<int>> response = await Dio(baseOptions).post(SCAN_ENDPOINT,
         data: formData, options: Options(responseType: ResponseType.bytes));
     return Uint8List.fromList(response.data);
-  } on DioError {
+  } on DioError catch (e) {
+    print(e.message);
     throw ScanException();
   }
 }

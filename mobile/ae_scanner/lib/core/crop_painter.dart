@@ -1,6 +1,8 @@
-import 'package:ae_scanner/config.dart' as config;
-import 'package:flutter/widgets.dart';
 import 'dart:ui' as ui;
+
+import 'package:ae_scanner/config.dart' as config;
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 import 'crop_polygon.dart';
 
@@ -16,13 +18,18 @@ class CropPainter extends CustomPainter {
     ..style = PaintingStyle.fill;
 
   final _edgePaint = Paint()
+    ..blendMode = BlendMode.difference
     ..color = config.primaryColor
     ..isAntiAlias = true
     ..style = PaintingStyle.stroke
+    ..strokeCap = StrokeCap.round
+    ..strokeJoin = StrokeJoin.miter
+    ..strokeMiterLimit = 0
     ..strokeWidth = 4;
 
   final _fillPaint = Paint()
-    ..color = config.primaryColor.withOpacity(0.25)
+//    ..blendMode = BlendMode.difference
+    ..color = Colors.white.withOpacity(0.25)
     ..isAntiAlias = true
     ..style = PaintingStyle.fill;
 
@@ -42,13 +49,15 @@ class CropPainter extends CustomPainter {
             height: scaledHeight),
         Paint());
 
-    canvas.drawPoints(ui.PointMode.polygon,
-        [...cropPolygon.list, cropPolygon.list.first], _edgePaint);
-    cropPolygon.list
-        .forEach((offset) => canvas.drawCircle(offset, 8, _vertexPaint));
-
     final path = Path()..addPolygon(cropPolygon.list, true);
     canvas.drawPath(path, _fillPaint);
+
+    canvas.drawPoints(ui.PointMode.polygon,
+        [...cropPolygon.list, cropPolygon.list.first], _edgePaint);
+    cropPolygon.list.forEach((offset) {
+      canvas.drawCircle(offset, 8, _vertexPaint);
+      canvas.drawArc(Rect.fromCircle(center: offset, radius: 8), 0.0, 3.1415*2, false, _edgePaint);
+    });
   }
 
   @override
