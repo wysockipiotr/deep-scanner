@@ -12,26 +12,46 @@ class Gallery extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GridView.count(
-        crossAxisCount: 3,
-        mainAxisSpacing: .5,
-        crossAxisSpacing: .5,
+        crossAxisCount: 2,
+        mainAxisSpacing: 2,
+        crossAxisSpacing: 2,
         children:
             scans.map((SavedScan scan) => _buildCard(context, scan)).toList());
   }
 
-  Card _buildCard(BuildContext context, SavedScan scan) => Card(
+  Widget _buildCard(BuildContext ctx, SavedScan scan) => Card(
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4.0)),
         elevation: 2.0,
-        child: Ink.image(
-          image: FileImage(scan.scanFile),
-          fit: BoxFit.cover,
-          child: InkWell(
-            onTap: () {
-              Navigator.of(context).push(MaterialPageRoute(
-                  builder: (ctx) => DetailsScreen(
-                        imageName: p.basename(scan.scanFile.path),
-                        imageProvider: FileImage(scan.scanFile),
-                      )));
-            },
+        child: GridTile(
+          footer: GridTileBar(
+            backgroundColor: Colors.white.withOpacity(0.8),
+            trailing: IconButton(
+              onPressed: () {},
+              color: Colors.black.withOpacity(0.6),
+              icon: Icon(Icons.delete_outline),
+            ),
+            title: Text(
+                p.basename(
+                  scan.scanFile.path,
+                ),
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black.withOpacity(0.6),
+                    fontSize: 12.0)),
+          ),
+          child: Ink.image(
+            image: FileImage(scan.scanFile),
+            fit: BoxFit.cover,
+            child: InkWell(
+              onTap: () {
+                Navigator.of(ctx).push(MaterialPageRoute(
+                    builder: (ctx) => DetailsScreen(
+                          imageName: p.basename(scan.scanFile.path),
+                          imageProvider: FileImage(scan.scanFile),
+                        )));
+              },
+            ),
           ),
         ),
       );
