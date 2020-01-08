@@ -10,7 +10,7 @@ class AboutScreen extends StatelessWidget {
       ),
       body: Center(
         child: Padding(
-            padding: EdgeInsets.only(left: 36.0, right: 36.0, bottom: 50),
+            padding: EdgeInsets.only(left: 36.0, right: 36.0, bottom: 60),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -25,6 +25,11 @@ class AboutScreen extends StatelessWidget {
                   style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
                 ),
                 SizedBox(
+                  height: 4,
+                ),
+                Text("Gliwice, 2020",
+                    style: Theme.of(context).textTheme.caption),
+                SizedBox(
                   height: 18,
                 ),
                 Text(
@@ -32,9 +37,17 @@ class AboutScreen extends StatelessWidget {
                   style: TextStyle(fontWeight: FontWeight.w700),
                 ),
                 Text(
-                  "This application allows to scan documents using device camera and denoise them using autoencoder deep neural networks",
+                  "DeepScanner allows to scan text documents using device camera and denoise them using autoencoder deep neural networks",
                   textAlign: TextAlign.center,
                 ),
+                SizedBox(
+                  height: 14,
+                ),
+                Text(
+                  "Supervisor",
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
+                Text("dr inż. Grzegorz Baron"),
                 SizedBox(
                   height: 14,
                 ),
@@ -42,7 +55,7 @@ class AboutScreen extends StatelessWidget {
                   "Author",
                   style: TextStyle(fontWeight: FontWeight.w700),
                 ),
-                Text("Piotr Wysocki")
+                Text("Piotr Wysocki"),
               ],
             )),
       ));
