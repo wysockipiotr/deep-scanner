@@ -1,5 +1,6 @@
 import 'package:ae_scanner/core/saved_scan_provider.dart';
 import 'package:ae_scanner/main.dart';
+import 'package:ae_scanner/model/saved_scan.dart';
 import 'package:ae_scanner/screens/about.dart';
 import 'package:ae_scanner/screens/crop.dart';
 import 'package:ae_scanner/widgets/gallery.dart';
@@ -70,13 +71,39 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildBody() {
     final scans = Provider.of<AllScans>(context).savedScans;
-    return Center(
-        child: Gallery(
+    return Center(child: _buildGallery(scans));
+  }
+
+  Widget _buildPlaceholder() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Text(
+          "No scans",
+          style: Theme.of(context).textTheme.title,
+        ),
+        SizedBox(
+          height: 8.0,
+        ),
+        FlatButton.icon(
+            textColor: Colors.black.withOpacity(0.6),
+            onPressed: _showPickImageBottomSheet,
+            icon: Icon(Icons.scanner),
+            label: Text("Scan your first document"))
+      ],
+    );
+  }
+
+  Widget _buildGallery(List<SavedScan> scans) {
+    if (scans.isEmpty) {
+      return _buildPlaceholder();
+    }
+    return Gallery(
       scans: scans,
       onDeleteScan: (id) async {
         await Provider.of<AllScans>(context).updateFromDb();
       },
-    ));
+    );
   }
 
   FloatingActionButton _buildFab() => FloatingActionButton(
