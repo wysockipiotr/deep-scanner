@@ -20,12 +20,42 @@ from app import app
 
 @dataclass
 class ScanRequest:
+    """
+    Serialized scan request
+
+    Attributes
+    ----------
+    image_path
+        Path to the processed image file
+    image
+        Processed image as NumPy array
+    points
+        NumPy array ((4, 2)) of crop polygon points:
+        [[topLeftX, topLeftY],
+         [topRightX, topRightY],
+         [bottomRightX, bottomRightY],
+         [bottomLeftX, bottomLeftY]]
+    """
+
     image_path: str
     image: np.ndarray
     points: np.ndarray
 
 
 def serialize(request: flask.Request) -> ScanRequest:
+    """
+    Serializes the scan request
+
+    Parameters
+    ----------
+    request
+        Scan request retrieved by Flask app
+
+    Returns
+    -------
+    ScanRequest
+        Serialized data from the request
+    """
     data: ImmutableMultiDict = request.form
     files: ImmutableMultiDict = request.files
 
@@ -41,6 +71,21 @@ def serialize(request: flask.Request) -> ScanRequest:
 
 
 def process_image(scan_request: ScanRequest) -> np.ndarray:
+    """
+    Processes image from scan request by converting it to grayscale,
+    applying perspective transform and autoencoder denoising
+
+    Parameters
+    ----------
+    scan_request
+        Request containing image to be processed
+
+    Returns
+    -------
+    np.ndarray
+        Processed image
+    """
+
     # use grayscale image
     image = cv2.cvtColor(scan_request.image, cv2.COLOR_BGR2GRAY)
 
@@ -53,7 +98,21 @@ def process_image(scan_request: ScanRequest) -> np.ndarray:
     return image
 
 
-def send_and_remove_image(image_path: str) -> Any:
+def send_and_remove_image(image_path: str) -> Tuple[Any, int]:
+    """
+    Helper function that sends the image as a Flask HTTP response
+    and immediately removes the file from the filesystem
+
+    Parameters
+    ----------
+    image_path
+        Path to the sent image
+
+    Returns
+    -------
+    Tuple[Any, int]
+        Tuple of Flask file response and the status code
+    """
     image_bytes = io.BytesIO()
     with open(image_path, "rb") as image_file:
         image_bytes.write(image_file.read())
@@ -64,6 +123,14 @@ def send_and_remove_image(image_path: str) -> Any:
 
 
 def _remove_file(image_path: str) -> Optional[NoReturn]:
+    """
+    Removes the image temporary file from the filesystem
+
+    Parameters
+    ----------
+    image_path
+        Path to the image
+    """
     try:
         os.remove(image_path)
     except Exception as e:
@@ -71,8 +138,18 @@ def _remove_file(image_path: str) -> Optional[NoReturn]:
 
 
 def _validate_payload(
-        data: ImmutableMultiDict, files: ImmutableMultiDict
+    data: ImmutableMultiDict, files: ImmutableMultiDict
 ) -> Optional[NoReturn]:
+    """
+    Validates payload of the received scan request
+
+    Parameters
+    ----------
+    data
+        Dictionary of crop polygon params
+    files
+        Received files
+    """
     if not set(config.POINT_COORDS_NAMES) <= set(data.keys()):
         flask.abort(status.BAD_REQUEST_400, "No crop polygon coords")
 
@@ -81,6 +158,20 @@ def _validate_payload(
 
 
 def _obtain_image(files: ImmutableMultiDict) -> Tuple[str, np.ndarray]:
+    """
+    Loads image from the scan request
+
+    Parameters
+    ----------
+    files
+        Received files from the request
+
+    Returns
+    -------
+    Tuple[str, np.ndarray]
+        Tuple of path to the temporary image
+        and the image as NumPy array
+    """
     image_path = f"{config.TMP_IMG_DIR_PATH}/{uuid.uuid4()}.jpg"
     files_iterator = cast(Iterator, files.values())
     cast(FileStorage, next(files_iterator)).save(image_path)
@@ -94,6 +185,19 @@ def _obtain_image(files: ImmutableMultiDict) -> Tuple[str, np.ndarray]:
 
 
 def _apply_model(image: np.ndarray) -> np.ndarray:
+    """
+    Applies autoencoder denoiser to the image
+
+    Parameters
+    ----------
+    image
+        Processed image (grayscale)
+
+    Returns
+    -------
+    np.ndarray
+        Image after denoising
+    """
     model_height, model_width = config.MODEL_INPUT_SHAPE
     image_height, image_width = image.shape
 
@@ -102,16 +206,26 @@ def _apply_model(image: np.ndarray) -> np.ndarray:
         return _apply_to_exact(image, model_height, model_width)
 
     # recursively apply model to the whole image
-    elif image_height >= model_height \
-            and image_width >= model_width:
-        return _apply_to_larger(image, image_height, image_width, model_height, model_width)
+    elif image_height >= model_height and image_width >= model_width:
+        return _apply_to_larger(
+            image, image_height, image_width, model_height, model_width
+        )
 
     # if image is smaller than the model input, scale it to model's input shape
     else:
         return _apply_model(cv2.resize(image, (model_width, model_height)))
 
 
-def _apply_to_larger(image, image_height, image_width, model_height, model_width):
+def _apply_to_larger(
+    image: np.ndarray,
+    image_height: int,
+    image_width: int,
+    model_height: int,
+    model_width: int,
+) -> np.ndarray:
+    """
+    Process image larger than the model input layer
+    """
     n_vertical = math.ceil(image_height / model_height)
     n_horizontal = math.ceil(image_width / model_width)
 
@@ -128,74 +242,75 @@ def _apply_to_larger(image, image_height, image_width, model_height, model_width
 
         result[v_slice, h_slice] = _apply_model(result[v_slice, h_slice])
     # dispose of the grid artifact
-    _patch_joints(
-        buffer, model_height, model_width, n_horizontal, n_vertical, result
-    )
+    _patch_joints(buffer, model_height, model_width, n_horizontal, n_vertical, result)
     # crop to original image shape
     return result[:image_height, :image_width]
 
 
-def _apply_to_exact(image, model_height, model_width):
+def _apply_to_exact(
+    image: np.ndarray, model_height: int, model_width: int
+) -> np.ndarray:
+    """
+    Process image of dimensions equal to model's
+    """
     model_input = image.reshape((1, model_height, model_width, 1)) / 255.0
-    return (
-            model.get().predict(model_input).reshape((model_height, model_width)) * 255
-    )
+    return model.get().predict(model_input).reshape((model_height, model_width)) * 255
 
 
-def _patch_joints(buffer, model_height, model_width, n_horizontal, n_vertical, result):
+def _patch_joints(
+    buffer: np.ndarray,
+    model_height: int,
+    model_width: int,
+    n_horizontal: int,
+    n_vertical: int,
+    result: np.ndarray,
+) -> None:
+    """
+    Removes artifacts after applying the model adjacently
+    """
+
     # patch horizontal joints
-
-    import operator
-
-    def patch_slice(axis: int, i: int):
-        (slice(), slice())
-        operator.itemgetter((slice(), slice()))
-
     for row, col in itertools.product(range(1, n_vertical), range(n_horizontal)):
-        # for row in range(1, n_vertical):
-        #     for col in range(n_horizontal):
         patch = _apply_model(
             buffer[
-            row * model_height
-            - model_height // 2: row * model_height
-                                 + model_height // 2,
-            col * model_width: (col + 1) * model_width,
+                row * model_height
+                - model_height // 2 : row * model_height
+                + model_height // 2,
+                col * model_width : (col + 1) * model_width,
             ]
         )
 
         result[
-        row * model_height
-        - config.PATCH_OVERLAP_SIZE: row * model_height
-                                     + config.PATCH_OVERLAP_SIZE,
-        col * model_width: (col + 1) * model_width,
+            row * model_height
+            - config.PATCH_OVERLAP_SIZE : row * model_height
+            + config.PATCH_OVERLAP_SIZE,
+            col * model_width : (col + 1) * model_width,
         ] = patch[
             model_height // 2
-            - config.PATCH_OVERLAP_SIZE: model_height // 2
-                                         + config.PATCH_OVERLAP_SIZE,
+            - config.PATCH_OVERLAP_SIZE : model_height // 2
+            + config.PATCH_OVERLAP_SIZE,
             :,
-            ]
+        ]
 
     # patch vertical joints
     for col, row in itertools.product(range(1, n_horizontal), range(n_vertical)):
-        # for col in range(1, n_horizontal):
-        #     for row in range(n_vertical):
         patch = _apply_model(
             buffer[
-            row * model_height: (row + 1) * model_height,
-            col * model_width
-            - model_width // 2: col * model_width
-                                + model_width // 2,
+                row * model_height : (row + 1) * model_height,
+                col * model_width
+                - model_width // 2 : col * model_width
+                + model_width // 2,
             ]
         )
 
         result[
-        row * model_height: (row + 1) * model_height,
-        col * model_width
-        - config.PATCH_OVERLAP_SIZE: col * model_width
-                                     + config.PATCH_OVERLAP_SIZE,
+            row * model_height : (row + 1) * model_height,
+            col * model_width
+            - config.PATCH_OVERLAP_SIZE : col * model_width
+            + config.PATCH_OVERLAP_SIZE,
         ] = patch[
             :,
             model_width // 2
-            - config.PATCH_OVERLAP_SIZE: model_width // 2
-                                         + config.PATCH_OVERLAP_SIZE,
-            ]
+            - config.PATCH_OVERLAP_SIZE : model_width // 2
+            + config.PATCH_OVERLAP_SIZE,
+        ]

@@ -34,7 +34,7 @@ def four_point_warp(image: np.ndarray, contour_points: np.ndarray) -> np.ndarray
     """
     Returns the `image` with warped perspective, in accordance with the given 4-point contour.
     """
-    # contour_points = clockwise_sorted(contour_points)
+    contour_points = clockwise_sorted(contour_points)
     tl, tr, br, bl = contour_points
     top_width, bottom_width = distance(tl, tr), distance(bl, br)
     max_width = int(max(top_width, bottom_width))
